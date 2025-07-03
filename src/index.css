@@ -1,0 +1,11 @@
+@import url("https://fonts.googleapis.com/css2?family=Macondo&display=swap");
+
+@import "tailwindcss";
+
+@theme {
+  --font-macondo: "Macondo", sans-serif;
+}
+
+.ant-select-selector * {
+  font-family: "Macondo", sans-serif !important;
+}
