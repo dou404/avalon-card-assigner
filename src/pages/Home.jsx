@@ -4,7 +4,6 @@ import PORTRAIT_BG_IMAGE from "../assets/others/portrait-bg.jpg";
 import LOGO_IMAGE from "../assets/others/game-logo.png";
 import START_BUTTON_IMAGE from "../assets/others/start-button.svg";
 import { useNavigate } from "react-router-dom";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 export default function HomePage() {
   const [currentWidth, setCurrentWidth] = useState(window.innerWidth);
