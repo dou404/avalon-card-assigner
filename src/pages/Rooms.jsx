@@ -10,26 +10,21 @@ export default function Rooms() {
   const [isRoleSetsModalOpen, setIsRoleSetsModalOpen] = useState(false);
   const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
   const [roomList, setRoomList] = useState([]);
+  const userName = localStorage.getItem("userName");
 
   useEffect(() => {
-    if (!localStorage.getItem("socketId")) {
+    if (!userName) {
       return navigate("/");
     }
 
-    socket.emit("get-room-list", (roomList) => {
-      setRoomList(roomList);
+    socket.emit("get-room-list", (response) => {
+      setRoomList(response.roomList);
     });
 
     socket.on("room-update", (roomList) => {
       setRoomList(roomList);
     });
   }, []);
-
-  const handleJoinRoom = (roomName) => {
-    if (!roomName) return;
-
-    navigate(`/room/${roomName}`);
-  };
 
   return (
     <div
@@ -43,9 +38,20 @@ export default function Rooms() {
 
       <div className="grow lg:max-w-1/2 px-4">
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-white px-4 sm:px-8 py-8 mx-auto">
-          <p className="text-3xl sm:text-[4em] font-semibold">ROOMS</p>
+          <p className="flex items-center gap-2 text-3xl sm:text-[3em] font-semibold">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              width="32"
+              height="32"
+              fill="currentColor"
+            >
+              <path d="M20 22H18V20C18 18.3431 16.6569 17 15 17H9C7.34315 17 6 18.3431 6 20V22H4V20C4 17.2386 6.23858 15 9 15H15C17.7614 15 20 17.2386 20 20V22ZM12 13C8.68629 13 6 10.3137 6 7C6 3.68629 8.68629 1 12 1C15.3137 1 18 3.68629 18 7C18 10.3137 15.3137 13 12 13ZM12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z"></path>
+            </svg>
+            {userName}
+          </p>
 
-          <div className="w-full md:ml-auto flex flex-col md:flex-row items-stretch md:items-center justify-center gap-2">
+          <div className="w-full md:w-fit md:ml-auto flex flex-col md:flex-row items-stretch md:items-center justify-center gap-2">
             <button
               onClick={() => setIsRoleSetsModalOpen(true)}
               className="flex items-center justify-center gap-2 px-2 sm:px-4 py-2 bg-sky-600 font-semibold rounded-md hover:brightness-75 duration-200 cursor-pointer"
@@ -85,14 +91,13 @@ export default function Rooms() {
               <CreateRoomModal
                 open={isCreateRoomModalOpen}
                 setOpen={setIsCreateRoomModalOpen}
-                handleJoinRoom={handleJoinRoom}
               />
             )}
           </div>
         </div>
 
-        <div className="w-full min-h-64 bg-white/30 rounded-md border-2 border-white flex flex-col gap-1 items-stretch justify-start">
-          {roomList &&
+        <div className="w-full min-h-64 max-h-80 overflow-y-auto bg-white/30 rounded-md border-2 border-white flex flex-col gap-2 items-stretch justify-start">
+          {roomList && roomList.length > 0 ? (
             roomList.map((room, index) => (
               <div
                 key={index}
@@ -140,14 +145,21 @@ export default function Rooms() {
                       room.players.length === room.maxPlayer ||
                       room.isInProgress
                     }
-                    onClick={() => handleJoinRoom(room.roomName)}
+                    onClick={() => {
+                      navigate(`/room/${room.roomName}`);
+                    }}
                     className="w-full bg-green-600 px-8 py-2 rounded-md text-white font-semibold cursor-pointer hover:bg-green-800 duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:hover:bg-gray-300"
                   >
                     JOIN
                   </button>
                 </div>
               </div>
-            ))}
+            ))
+          ) : (
+            <p className="m-auto text-2xl font-light text-white">
+              There is no available room!
+            </p>
+          )}
         </div>
       </div>
     </div>

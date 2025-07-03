@@ -13,8 +13,10 @@ export default function Lobby() {
   const [currentRoom, setCurrentRoom] = useState();
   const [assignedRole, setAssignedRole] = useState();
 
+  const userName = localStorage.getItem("userName");
+
   useEffect(() => {
-    if (!roomName || !localStorage.getItem("socketId")) {
+    if (!roomName || !userName) {
       return navigate("/");
     }
 
@@ -112,7 +114,7 @@ export default function Lobby() {
               >
                 {currentRoom.players &&
                   currentRoom.players.map((player, index) => {
-                    const isYou = player.id === socket.id;
+                    const isYou = player.userName === userName;
                     return (
                       <div
                         key={index}
@@ -123,7 +125,7 @@ export default function Lobby() {
                         } p-2 rounded-md relative group`}
                       >
                         <span className="flex items-center gap-2 text-sm">
-                          {currentRoom.hostId === player.id && (
+                          {currentRoom.hostUserName === player.userName && (
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
@@ -139,7 +141,7 @@ export default function Lobby() {
                           </p>
                         </span>
 
-                        {currentRoom.isHost && player.id !== socket.id && (
+                        {currentRoom.isHost && player.userName !== userName && (
                           <Popconfirm
                             title="Kick this player"
                             description={
@@ -148,7 +150,7 @@ export default function Lobby() {
                             onConfirm={() => {
                               socket.emit("leave-room", {
                                 roomName,
-                                player: player.id,
+                                userName: player.userName,
                               });
                             }}
                             okText="Yes"
@@ -190,7 +192,7 @@ export default function Lobby() {
                   " This room will no longer exist!"
                 }
                 onConfirm={() => {
-                  socket.emit("leave-room", { roomName, player: socket.id });
+                  socket.emit("leave-room", { roomName, userName });
                   navigate("/rooms");
                 }}
                 okText="Leave"

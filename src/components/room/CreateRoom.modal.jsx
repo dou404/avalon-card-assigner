@@ -2,6 +2,7 @@ import { Modal, Select } from "antd";
 import React, { useState } from "react";
 import { socket } from "../../libs/socket";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const generateRoomName = () => {
   const adjectives = [
@@ -36,7 +37,9 @@ const generateRoomName = () => {
   return `${adjective}-${noun}-${number}-${Math.floor(Date.now() / 1000)}`;
 };
 
-export default function CreateRoomModal({ open, setOpen, handleJoinRoom }) {
+export default function CreateRoomModal({ open, setOpen }) {
+  const navigate = useNavigate();
+
   const [roomName, setRoomName] = useState(generateRoomName());
   const [key, setKey] = useState("");
   const [maxPlayer, setMaxPlayer] = useState(5);
@@ -52,27 +55,21 @@ export default function CreateRoomModal({ open, setOpen, handleJoinRoom }) {
   const handleCreateNewRoom = () => {
     if (!roomName || roomName === "") {
       toast.dismiss();
-      toast("Please enter a name for the room!", {
-        type: "warning",
-      });
+      toast.warn("Please enter a name for the room!");
       return;
     }
     if (!key || key === "") {
       toast.dismiss();
-      toast("Please enter a key!", {
-        type: "warning",
-      });
+      toast.warn("Please enter a key!");
       return;
     }
     socket.emit("create-room", { roomName, maxPlayer, key }, (response) => {
       if (response.success) {
+        navigate(`/room/${roomName}`);
         setOpen(false);
-        handleJoinRoom(roomName);
       } else {
         toast.dismiss();
-        toast(response.message, {
-          type: "warning",
-        });
+        toast.warn(response.message);
         return;
       }
     });

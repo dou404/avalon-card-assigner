@@ -17,13 +17,19 @@ function App() {
   }, []);
 
   useEffect(() => {
-    socket.on("connect", () => {
+    socket?.on("connect", () => {
       localStorage.setItem("socketId", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      localStorage.removeItem("socketId");
+      localStorage.removeItem("userName");
     });
 
     return () => {
       socket.disconnect();
-      localStorage.removeItem("socketId");
+      socket.off("connect");
+      socket.off("disconnect");
     };
   }, []);
 

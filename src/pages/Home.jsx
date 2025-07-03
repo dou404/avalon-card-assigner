@@ -6,7 +6,7 @@ import START_BUTTON_IMAGE from "../assets/others/start-button.svg";
 import SHIELD_GIF from "../assets/gif/shield-animation.gif";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { socket } from "@/libs/socket";
+import { socket, connectSocket } from "@/libs/socket";
 import api from "@/libs/axios";
 
 export default function HomePage() {
@@ -38,6 +38,9 @@ export default function HomePage() {
 
     checkServerHealth();
 
+    const localStorageUserName = localStorage.getItem("userName");
+    if (localStorageUserName) handleRegisterName(localStorageUserName, "FALSE");
+
     const handleResize = () => {
       setCurrentWidth(window.innerWidth);
     };
@@ -47,16 +50,25 @@ export default function HomePage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleRegisterName = () => {
-    if (!userName || userName.length === 0) {
+  const handleRegisterName = (name, isNew) => {
+    if (!name || name.trim().length === 0) {
       toast.info("Enter a name for your future tomb!");
       return;
     }
 
-    socket.emit("register", { userName }, (response) => {
-      if (!response.success) {
-        toast.warn(response.message || "Username is already taken!");
-      } else navigate("/rooms");
+    const trimmedUserName = name.trim();
+
+    connectSocket(trimmedUserName, isNew);
+
+    socket?.on("connect", () => {
+      socket.on("register-username", (response) => {
+        if (!response.success) {
+          toast.warn(response.message || "Username is already taken!");
+        } else {
+          localStorage.setItem("userName", trimmedUserName);
+          navigate("/rooms");
+        }
+      });
     });
   };
 
@@ -108,13 +120,16 @@ export default function HomePage() {
               onChange={(e) => {
                 if (e.target.value.length < 20) setUserName(e.target.value);
               }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleRegisterName(userName, "TRUE");
+              }}
               className="font-macondo border-2 rounded-md bg-white p-4 text-xl"
             />
 
             <button
               data-aos="fade-up"
               data-aos-duration="2000"
-              onClick={handleRegisterName}
+              onClick={() => handleRegisterName(userName, "TRUE")}
               className="flex items-center justify-center gap-4 px-6 py-3 bg-gradient-to-br from-amber-800 to-yellow-700 text-white font-serif text-lg border-4 border-yellow-300 rounded-lg shadow-inner shadow-black hover:brightness-110 hover:scale-105 transition duration-200 tracking-wide cursor-pointer"
             >
               <img
