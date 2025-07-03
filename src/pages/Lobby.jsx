@@ -14,7 +14,9 @@ export default function Lobby() {
   const [assignedRole, setAssignedRole] = useState();
 
   useEffect(() => {
-    if (!roomName) return;
+    if (!roomName || !localStorage.getItem("socketId")) {
+      return navigate("/");
+    }
 
     socket.emit("join-room", { roomName }, (response) => {
       if (response.success) {

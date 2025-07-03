@@ -23,6 +23,7 @@ function App() {
 
     return () => {
       socket.disconnect();
+      localStorage.removeItem("socketId");
     };
   }, []);
 
