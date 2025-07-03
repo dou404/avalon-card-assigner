@@ -4,7 +4,6 @@ import api from "../libs/axios";
 import RoleSet from "../components/role-set/RoleSet";
 import CreateRoomModal from "../components/room/CreateRoom.modal";
 import { socket } from "../libs/socket";
-import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import SHIELD_GIF from "../assets/gif/shield-animation.gif";
 
@@ -44,18 +43,10 @@ export default function Rooms() {
     });
   }, []);
 
-  const handleJoinRoom = (roomName, isHost) => {
+  const handleJoinRoom = (roomName) => {
     if (!roomName) return;
 
-    socket.emit("join-room", { roomName }, (response) => {
-      if (response.success) {
-        const newRoom = { ...response.room, isHost: Boolean(isHost) };
-        localStorage.setItem("current-room", JSON.stringify(newRoom));
-        navigate(`/room/${roomName}`);
-      } else {
-        toast(response.message, { type: "error" });
-      }
-    });
+    navigate(`/room/${roomName}`);
   };
 
   return (
@@ -95,10 +86,10 @@ export default function Rooms() {
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-white px-4 sm:px-8 py-8 mx-auto">
             <p className="text-3xl sm:text-[4em] font-semibold">ROOMS</p>
 
-            <div className="md:ml-auto flex flex-col md:flex-row items-stretch md:items-center justify-center gap-2">
+            <div className="w-full md:ml-auto flex flex-col md:flex-row items-stretch md:items-center justify-center gap-2">
               <button
                 onClick={() => setIsRoleSetsModalOpen(true)}
-                className="flex items-center gap-2 px-2 sm:px-4 py-2 bg-sky-600 font-semibold rounded-md hover:brightness-75 duration-200 cursor-pointer"
+                className="flex items-center justify-center gap-2 px-2 sm:px-4 py-2 bg-sky-600 font-semibold rounded-md hover:brightness-75 duration-200 cursor-pointer"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -118,7 +109,7 @@ export default function Rooms() {
 
               <button
                 onClick={() => setIsCreateRoomModalOpen(true)}
-                className="flex items-center gap-2 px-2 sm:px-4 py-2 bg-green-600 font-semibold rounded-md hover:brightness-75 duration-200 cursor-pointer"
+                className="flex items-center justify-center gap-2 px-2 sm:px-4 py-2 bg-green-600 font-semibold rounded-md hover:brightness-75 duration-200 cursor-pointer"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

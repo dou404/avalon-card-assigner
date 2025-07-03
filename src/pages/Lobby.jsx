@@ -19,8 +19,11 @@ export default function Lobby() {
     socket.emit("join-room", { roomName }, (response) => {
       if (response.success) {
         setCurrentRoom(response.room);
-        console.log(response.room);
-      } else navigate("/rooms");
+      } else {
+        toast.dismiss();
+        toast.warn(response.message);
+        navigate("/rooms");
+      }
     });
 
     socket.on("room-update", (roomList) => {
@@ -35,18 +38,25 @@ export default function Lobby() {
     });
 
     socket.on("room-dismiss", () => {
-      navigate("/rooms");
       toast.dismiss();
       toast.info("Room no longer exists!");
+      navigate("/rooms");
     });
 
     socket.on("role-assigned", ({ role }) => {
-      console.log({ assignedRole: role });
       setAssignedRole(role);
+    });
+
+    socket.on("game-finished", ({ room }) => {
+      setAssignedRole(undefined);
+      setCurrentRoom(room);
+      toast.info("Game has finished!");
     });
   }, []);
 
   const handleStartGame = () => {
+    toast.dismiss();
+
     socket.emit("start-game", { roomName }, (response) => {
       if (!response.success) {
         toast.dismiss();
@@ -57,6 +67,11 @@ export default function Lobby() {
 
   const handleEndGame = () => {
     socket.emit("end-game", { roomName });
+    setAssignedRole(undefined);
+    setCurrentRoom((prev) => ({
+      ...prev,
+      isInProgress: false,
+    }));
   };
 
   if (!currentRoom) return;
@@ -88,21 +103,25 @@ export default function Lobby() {
                 {roomName}
               </span>
 
-              <div className="p-2 border border-gray-300 rounded-md min-h-40 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 grid-rows-3 gap-2">
+              <div
+                className={`min-h-40 max-h-64 overflow-y-auto p-2 border border-gray-300 rounded-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${
+                  currentRoom.players.length < 3 && "grid-rows-3"
+                } md:grid-rows-3 gap-2`}
+              >
                 {currentRoom.players &&
                   currentRoom.players.map((player, index) => {
-                    const isYou = player === socket.id;
+                    const isYou = player.id === socket.id;
                     return (
                       <div
                         key={index}
                         className={`${
                           isYou
-                            ? "bg-green-600 text-white"
+                            ? "bg-green-600 text-white font-semibold"
                             : "bg-white text-black"
                         } p-2 rounded-md relative group`}
                       >
                         <span className="flex items-center gap-2 text-sm">
-                          {currentRoom.hostId === player && (
+                          {currentRoom.hostId === player.id && (
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
@@ -114,11 +133,11 @@ export default function Lobby() {
                             </svg>
                           )}{" "}
                           <p>
-                            {player} {isYou && "(You)"}
+                            {player.userName || player.id} {isYou && "(You)"}
                           </p>
                         </span>
 
-                        {currentRoom.isHost && player !== socket.id && (
+                        {currentRoom.isHost && player.id !== socket.id && (
                           <Popconfirm
                             title="Kick this player"
                             description={
@@ -127,7 +146,7 @@ export default function Lobby() {
                             onConfirm={() => {
                               socket.emit("leave-room", {
                                 roomName,
-                                player,
+                                player: player.id,
                               });
                             }}
                             okText="Yes"
@@ -152,7 +171,7 @@ export default function Lobby() {
               </div>
             </div>
 
-            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-center text-center gap-4 my-auto text-2xl font-semibold">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-center text-center gap-4 my-auto text-lg md:text-2xl font-semibold">
               <button
                 onClick={handleStartGame}
                 disabled={!currentRoom.isHost}

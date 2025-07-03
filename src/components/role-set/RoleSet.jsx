@@ -11,7 +11,6 @@ export default function RoleSet({ open, setOpen }) {
   });
 
   if (!roleSetData) return;
-  else console.log({ roleSetData });
 
   return (
     <Modal

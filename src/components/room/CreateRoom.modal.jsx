@@ -67,7 +67,7 @@ export default function CreateRoomModal({ open, setOpen, handleJoinRoom }) {
     socket.emit("create-room", { roomName, maxPlayer, key }, (response) => {
       if (response.success) {
         setOpen(false);
-        handleJoinRoom(roomName, true);
+        handleJoinRoom(roomName);
       } else {
         toast.dismiss();
         toast(response.message, {
