@@ -4,6 +4,7 @@ import RoleSet from "../components/role-set/RoleSet";
 import CreateRoomModal from "../components/room/CreateRoom.modal";
 import { socket } from "../libs/socket";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function Rooms() {
   const navigate = useNavigate();
@@ -26,6 +27,18 @@ export default function Rooms() {
     });
   }, []);
 
+  const handleLogout = () => {
+    socket.emit("logout", (response) => {
+      if (!response.success) {
+        toast.dismiss();
+        toast.error(response.message);
+      }
+
+      localStorage.removeItem("userName");
+      navigate("/");
+    });
+  };
+
   return (
     <div
       className={`w-full h-screen font-macondo flex items-center justify-center`}
@@ -37,7 +50,7 @@ export default function Rooms() {
       />
 
       <div className="grow lg:max-w-1/2 px-4">
-        <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-white px-4 sm:px-8 py-8 mx-auto">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-white px-4 sm:pl-8 py-8 mx-auto">
           <p className="flex items-center gap-2 text-3xl sm:text-[3em] font-semibold">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -86,6 +99,20 @@ export default function Rooms() {
                 <path d="M11 11V5H13V11H19V13H13V19H11V13H5V11H11Z"></path>
               </svg>
               Host a room
+            </button>
+            <button
+              onClick={handleLogout}
+              className="p-2 cursor-pointer bg-red-600 text-white rounded-md hover:brightness-75 duration-200"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="24"
+                height="24"
+                fill="currentColor"
+              >
+                <path d="M5 11H13V13H5V16L0 12L5 8V11ZM3.99927 18H6.70835C8.11862 19.2447 9.97111 20 12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4C9.97111 4 8.11862 4.75527 6.70835 6H3.99927C5.82368 3.57111 8.72836 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C8.72836 22 5.82368 20.4289 3.99927 18Z"></path>
+              </svg>
             </button>
             {isCreateRoomModalOpen && (
               <CreateRoomModal
